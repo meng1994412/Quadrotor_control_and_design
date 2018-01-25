@@ -41,6 +41,10 @@ int setup_imu();
 void calibrate_imu();      
 void read_imu();    
 void update_filter();
+void setup_keyboard();
+void trap(int signal);
+void safety_check();
+
 
 //global variables
 int imu;
@@ -55,9 +59,19 @@ long time_curr;
 long time_prev;
 struct timespec te;
 float yaw=0;
-float pitch_angle=0;
-float roll_angle=0;
-
+float pitch_angle=0; //pitch_acceleration
+float roll_angle=0;  //roll_acceleration
+float Roll=0;        //roll values from combination of accelerometer and gyro 
+float Pitch=0;        //pitch values from combination of accelerometer and gyro 
+float A=0.02;        //complementary coefficicent
+//week2
+struct Keyboard {
+  char key_press;
+  int heartbeat;
+  int version;
+};
+Keyboard* shared_memory; 
+int run_program=1;
  
 int main (int argc, char *argv[])
 {
@@ -65,20 +79,38 @@ int main (int argc, char *argv[])
     setup_imu();
     calibrate_imu();
     
- 
+    setup_keyboard();
+    signal(SIGINT, &trap);
     
-    while(1)
+    //to refresh values from shared memory first 
+    Keyboard keyboard=*shared_memory;
+    
+    while(run_program==1)
     {
       read_imu();      
       update_filter();
       
-      printf("x_gyro: %f, y_gyro: %f, z_gyro: %f, roll_angle: %f, pitch_angle: %f\n",imu_data[0],imu_data[1],imu_data[2], roll_angle, pitch_angle);
+      //printf("x_gyro: %8.4f, y_gyro: %8.4f, z_gyro: %8.4f, roll_angle: %8.4f, pitch_angle: %8.4f\n",imu_data[0],imu_data[1],imu_data[2], roll_angle, pitch_angle);
       //printf("Roll: Roll_x: %f. Gyro_x: %f\n", roll_angle, imu_data[0]);
-      //printf("Pitch: Pitch_y: %f. Gyro_y: %f\n", pitch_angle, imu_data[1]);
+      //printf("Pitch: Pitch_y: %f. Gyro_y: %f\n", pitch_angle, );
+      //printf("%f %f %f\n",imu_data[3],imu_data[4],imu_data[5]);
+      //printf(" %f.   %f\n", roll_angle, pitch_angle);
+      
+      //keyboard=*shared_memory;
+      
+      printf("%d \n",keyboard.heartbeat); 
+      //printf("%c \n",shared_memory->key_press);
+      
+      
+      if (keyboard.key_press == ' ')
+      {
+        printf("Space pressed \n");
+        run_program=0;
+      }
      
     }
       
-    
+    return 0;
    
   
 }
@@ -106,7 +138,7 @@ void calibrate_imu()
   /*
   accel_z_calibration=??
   */
-  printf("calibration complete, %f %f %f %f %f %f\n\r",x_gyro_calibration,y_gyro_calibration,z_gyro_calibration,roll_calibration,pitch_calibration,accel_z_calibration);
+  //printf("calibration complete, %f %f %f %f %f %f\n\r",x_gyro_calibration,y_gyro_calibration,z_gyro_calibration,roll_calibration,pitch_calibration,accel_z_calibration);
 
 
 }
@@ -141,7 +173,7 @@ void read_imu()
     vw=vw ^ 0xffff;
     vw=-vw-1;
   }          
-  imu_data[4]=1.0*vw/32767*2;//Todo: convert vw from raw valeus to "g's"
+  imu_data[4]=-1.0*vw/32767*2;//Todo: convert vw from raw valeus to "g's"
   
   
   address=63;//todo: set addres value for accel z value;
@@ -153,7 +185,7 @@ void read_imu()
     vw=vw ^ 0xffff;
     vw=-vw-1;
   }          
-  imu_data[5]=1.0*vw/32767*2;//todo: convert vw from raw values to g's
+  imu_data[5]=-1.0*vw/32767*2;//todo: convert vw from raw values to g's
   
   
   address=67;//todo: set addres value for gyro x value;
@@ -191,7 +223,7 @@ void read_imu()
   
   //Roll & Pitch angle
   roll_angle = atan2(imu_data[4],imu_data[5])*180/M_PI+roll_calibration;
-  pitch_angle = atan2(imu_data[5],imu_data[3])*180/M_PI+pitch_calibration;
+  pitch_angle = atan2(imu_data[3],imu_data[5])*180/M_PI+pitch_calibration;
   
 
 
@@ -216,7 +248,12 @@ void update_filter()
   time_prev=time_curr;
   
   //comp. filter for roll, pitch here: 
-
+  Roll=roll_angle*A+(1-A)*(imu_data[0]*imu_diff+Roll);
+  Pitch=pitch_angle*A+(1-A)*(imu_data[1]*imu_diff+Pitch);
+  
+  //print out the values
+  //printf("%10.5f %10.5f %10.5f\n", Roll, roll_angle, imu_data[0]); //Roll values, roll_acceleration values, gyro values.
+  //printf("%10.5f %10.5f %10.5f\n", Pitch, pitch_angle, imu_data[1]); //Pitch values, pitch_acceleration values, gyro values.
 }
 
 
@@ -264,4 +301,115 @@ int setup_imu()
   return 0;
 }
 
+//function to add
+void setup_keyboard()
+{
+
+  int segment_id;   
+  struct shmid_ds shmbuffer; 
+  int segment_size; 
+  const int shared_segment_size = 0x6400; 
+  int smhkey=33222;
+  
+  /* Allocate a shared memory segment.  */ 
+  segment_id = shmget (smhkey, shared_segment_size,IPC_CREAT | 0666); 
+  /* Attach the shared memory segment.  */ 
+  shared_memory = (Keyboard*) shmat (segment_id, 0, 0); 
+  printf ("shared memory attached at address %p\n", shared_memory); 
+  /* Determine the segment's size. */ 
+  shmctl (segment_id, IPC_STAT, &shmbuffer); 
+  segment_size  =               shmbuffer.shm_segsz; 
+  printf ("segment size: %d\n", segment_size); 
+  /* Write a string to the shared memory segment.  */ 
+  //sprintf (shared_memory, "test!!!!."); 
+
+}
+
+
+//when cntrl+c pressed, kill motors
+
+void trap(int signal)
+
+{
+
+   printf("ending program\n\r");
+
+   run_program=0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Not used yet!!
+ 
+void safety_check()
+{
+  /*
+Any gyro rate > 300 degrees/sec
+Any Accelerometer value >1.8 g’s
+All Accelerometer values <.25 g’s
+Roll angle > 45 or <-45
+Pitch angle >45 or <-45
+Keyboard press of space
+Keyboard timeout
+Control+c is pressed in student code
+
+  */
+  if (imu_data[0] > 300)
+  {
+     printf("Program ends: gyro x rate larger than 300 deg/sec.\n\r");
+     run_program=0;
+  }
+  else if (imu_data[1] > 300)
+  {
+     printf("Program ends: gyro y rate larger than 300 deg/sec.\n\r");
+     run_program=0;
+  }
+  else if (imu_data[2] > 300)
+  {
+     printf("Program ends: gyro z rate larger than 300 deg/sec.\n\r");
+     run_program=0;
+  }
+  else if (imu_data[3] > 300)
+  {
+     printf("Program ends: x accel value larger than 1.8 g.\n\r");
+     run_program=0;
+  }
+  else if (imu_data[4] > 300)
+  {
+     printf("Program ends: y accel value larger than 1.8 g.\n\r");
+     run_program=0;
+  }  
+  else if (imu_data[5] > 300)
+  {
+     printf("Program ends: z accel value larger than 1.8 g.\n\r");
+     run_program=0;
+  }
+  else if (abs(Roll) > 45)
+  {
+     printf("Program ends: Roll angle > 45 or < -45.\n\r");
+     run_program=0;
+  else if (abs(Pitch) > 45)
+  {
+     printf("Program ends: Pitch angle > 45 or < -45.\n\r");
+     run_program=0;
+  }
+  //Three else if left here.
+}
 

@@ -36,6 +36,13 @@ enum Gscale {
   GFS_1000DPS,
   GFS_2000DPS
 };
+
+//week2
+typedef struct{
+  char key_press;
+  int heartbeat;
+  int version;
+}Keyboard;
  
 int setup_imu();
 void calibrate_imu();      
@@ -43,7 +50,7 @@ void read_imu();
 void update_filter();
 void setup_keyboard();
 void trap(int signal);
-void safety_check();
+void safety_check(Keyboard *keyp);
 
 
 //global variables
@@ -65,17 +72,19 @@ float Roll=0;        //roll values from combination of accelerometer and gyro
 float Pitch=0;        //pitch values from combination of accelerometer and gyro 
 float A=0.02;        //complementary coefficicent
 //week2
-struct Keyboard {
-  char key_press;
-  int heartbeat;
-  int version;
-};
 Keyboard* shared_memory; 
 int run_program=1;
+//week2
+struct timeval tem;
+long beat_timer;
+int oldheartbeat=-1;
  
 int main (int argc, char *argv[])
 {
-
+    //week2
+    gettimeofday(&tem,NULL);
+    beat_timer=tem.tv_sec*1000LL+tem.tv_usec/1000;
+    
     setup_imu();
     calibrate_imu();
     
@@ -96,17 +105,13 @@ int main (int argc, char *argv[])
       //printf("%f %f %f\n",imu_data[3],imu_data[4],imu_data[5]);
       //printf(" %f.   %f\n", roll_angle, pitch_angle);
       
-      //keyboard=*shared_memory;
+      keyboard=*shared_memory;
       
       printf("%d \n",keyboard.heartbeat); 
-      //printf("%c \n",shared_memory->key_press);
+      //printf("%c \n",keyboard.key_press);
       
-      
-      if (keyboard.key_press == ' ')
-      {
-        printf("Space pressed \n");
-        run_program=0;
-      }
+      safety_check(&keyboard);
+
      
     }
       
@@ -332,33 +337,13 @@ void trap(int signal)
 
 {
 
-   printf("ending program\n\r");
+   printf("\n Ending program\n\r");
 
    run_program=0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Not used yet!!
  
-void safety_check()
+void safety_check(Keyboard *keyp)
 {
   /*
 Any gyro rate > 300 degrees/sec
@@ -371,6 +356,12 @@ Keyboard timeout
 Control+c is pressed in student code
 
   */
+  
+  //week2
+
+  gettimeofday(&tem,NULL);
+  long curr_time=tem.tv_sec*1000LL+tem.tv_usec/1000;  
+  
   if (imu_data[0] > 300)
   {
      printf("Program ends: gyro x rate larger than 300 deg/sec.\n\r");
@@ -386,30 +377,58 @@ Control+c is pressed in student code
      printf("Program ends: gyro z rate larger than 300 deg/sec.\n\r");
      run_program=0;
   }
-  else if (imu_data[3] > 300)
+  else if (imu_data[3] > 1.8)
   {
      printf("Program ends: x accel value larger than 1.8 g.\n\r");
      run_program=0;
   }
-  else if (imu_data[4] > 300)
+  else if (imu_data[4] > 1.8)
   {
      printf("Program ends: y accel value larger than 1.8 g.\n\r");
      run_program=0;
   }  
-  else if (imu_data[5] > 300)
+  else if (imu_data[5] > 1.8)
   {
      printf("Program ends: z accel value larger than 1.8 g.\n\r");
+     run_program=0;
+  }
+  else if ((imu_data[3] < 0.25) & (imu_data[4] < 0.25) & (imu_data[5] < 0.25))
+  {
+     printf("Program ends: all accel values smaller than 0.25 g.\n\r");
      run_program=0;
   }
   else if (abs(Roll) > 45)
   {
      printf("Program ends: Roll angle > 45 or < -45.\n\r");
      run_program=0;
+  }
   else if (abs(Pitch) > 45)
   {
      printf("Program ends: Pitch angle > 45 or < -45.\n\r");
      run_program=0;
   }
-  //Three else if left here.
+  
+  
+  if(keyp->key_press == ' ')
+  {
+    printf("Space pressed. \n");
+    run_program=0;
+  }
+  gettimeofday(&tem,NULL);
+  curr_time=tem.tv_sec*1000LL+tem.tv_usec/1000;
+  
+  //printf("%ld   %ld\n",curr_time,beat_timer);  
+  
+  
+  if (keyp->heartbeat != oldheartbeat)
+  {
+    oldheartbeat=keyp->heartbeat;
+    beat_timer=curr_time;
+  }
+  else if(curr_time-beat_timer>250)
+  {
+    printf("Keyboard Timeout. \n");
+    run_program=0;      
+  }
 }
 
