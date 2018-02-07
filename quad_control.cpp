@@ -22,7 +22,7 @@
 #define PWR_MGMT_1       0x6B // Device defaults to the SLEEP mode
 #define PWR_MGMT_2       0x6C
 //week3
-#define PWM_MAX 1300
+#define PWM_MAX 1700
 #define frequency 25000000.0
 #define LED0 0x6			
 #define LED0_ON_L 0x6		
@@ -47,11 +47,26 @@ enum Gscale {
 };
 
 //week2
+/*
 typedef struct{
   char key_press;
   int heartbeat;
   int version;
 }Keyboard;
+*/
+
+//week 4
+
+struct Keyboard {
+  char key_press;
+  int heartbeat;
+	float pitch;
+	float roll;
+	float yaw;
+	float thrust;
+  int version;
+};
+
  
 int setup_imu();
 void calibrate_imu();      
@@ -63,7 +78,7 @@ void safety_check(Keyboard *keyp);
 void init_pwm();
 void init_motor(uint8_t channel);
 void set_PWM( uint8_t channel, float time_on_us);
-void pid_update();
+void pid_update(/*FILE *f*/Keyboard *keyp);
 
 
 
@@ -95,6 +110,14 @@ int oldheartbeat=-1;
 //week3
 int pwm;
 float pwm_control[4];
+//week4
+float previous_pitch = 0; //previous pitch velocity for differential control
+float pitch_integral = 0; //integral pitch for integral control 
+//float previous_roll = 0; //previous roll velocity for differential control
+//float roll_integral = 0; //integral roll for integral control 
+
+//Feb 2nd
+//FILE *f; // write a csv file to store some values 
  
 int main (int argc, char *argv[])
 {
@@ -119,6 +142,9 @@ int main (int argc, char *argv[])
     //to refresh values from shared memory first 
     Keyboard keyboard=*shared_memory;
     
+    //Feb 2nd
+    //FILE *f = fopen("Pitch_Data.csv", "w");
+    
     while(run_program==1)
     {
       read_imu();      
@@ -135,21 +161,26 @@ int main (int argc, char *argv[])
       
       //printf("%d \n",keyboard.heartbeat); 
       //printf("%c \n",keyboard.key_press);
+      //printf("%f \n", keyboard.pitch);
       
       safety_check(&keyboard);
       
-      pid_update();
+      pid_update(/*f*/&keyboard);
       set_PWM(0, pwm_control[0]);    //speed between 1000 and PWM_MAX, motor 0-3
       set_PWM(1, pwm_control[1]);    //speed between 1000 and PWM_MAX, motor 0-3
       set_PWM(2, pwm_control[2]);    //speed between 1000 and PWM_MAX, motor 0-3
       set_PWM(3, pwm_control[3]);    //speed between 1000 and PWM_MAX, motor 0-3
       
-      printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0], pwm_control[1], pwm_control[2], pwm_control[3]);
+      //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0], pwm_control[1], pwm_control[2], pwm_control[3]);
+      //printf("%10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0], pwm_control[1]);
     }
     set_PWM(0, 1000); // motor 0
     set_PWM(1, 1000); // motor 1
     set_PWM(2, 1000); // motor 2
     set_PWM(3, 1000); // motor 3
+    
+    //Feb 2nd
+    //fclose(f);
     
     return 0;
    
@@ -285,6 +316,8 @@ void update_filter()
     imu_diff+=1000000000;
   }
   //convert to seconds
+  
+  
   imu_diff=imu_diff/1000000000;
   time_prev=time_curr;
   
@@ -400,6 +433,7 @@ Control+c is pressed in student code
 
   gettimeofday(&tem,NULL);
   long curr_time=tem.tv_sec*1000LL+tem.tv_usec/1000;  
+  //printf("%ld    \n", tem.tv_sec);
   
   if (abs(imu_data[0]) > 300)
   {
@@ -463,12 +497,12 @@ Control+c is pressed in student code
   {
     oldheartbeat=keyp->heartbeat;
     beat_timer=curr_time;
-  }
+  } /*
   else if(curr_time-beat_timer>250)
   {
     printf("Keyboard Timeout. \n");
     run_program=0;      
-  }
+  }*/
 }
 
 /*
@@ -559,15 +593,77 @@ void set_PWM( uint8_t channel, float time_on_us)
   //}
 }
 
-void pid_update()
+void pid_update(/*FILE *f*/Keyboard *keyp)
 {
-  int neutral_power = 1150;
-  int P = 10;
-  // proportional control for motor 0 and 1, which use + 
+  float neutral_power = 1400;
+  float Thrust = neutral_power;
+  float Desire_pitch = -((keyp->pitch - 128) / 112) * 25;
+  printf("%f  \n", Desire_pitch);
+  //Do we need to add another series of PID values?
+  
+  
+  float P = 8;
+  float D = 150;
+  float I = 0.015;
+  /*
+  // proportional control for motor 0 and 2, which use + 
   pwm_control[0] = neutral_power + (Pitch - 0) * P;
   pwm_control[2] = neutral_power + (Pitch - 0) * P;
-  // proportional control for motor 0 and 1, which use -
+  // proportional control for motor 1 and 3, which use -
   pwm_control[1] = neutral_power - (Pitch - 0) * P;
   pwm_control[3] = neutral_power - (Pitch - 0) * P;
+  */
+  float pitch_error = Pitch - Desire_pitch;
+  float pitch_velocity;
+  pitch_velocity = Pitch - previous_pitch;
+  //float roll_error = Roll - 0;
+  //float roll_velocity;
+  //roll_velocity = Roll - previous_roll;  
+  
+  
+  /*
+  // differential control for motor 0 and 2, which use + 
+  pwm_control[0] = neutral_power + pitch_velocity * D;
+  pwm_control[2] = neutral_power + pitch_velocity * D;
+  // differential control for motor 1 and 3, which use - 
+  pwm_control[1] = neutral_power - pitch_velocity * D;
+  pwm_control[3] = neutral_power - pitch_velocity * D;
+  */
+  //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", pitch_velocity, pwm_control[0], pwm_control[1], pwm_control[2], pwm_control[3]);
+  int limit = 100;
+  
+  //Do we need to add another limit?
+  
+  
+  pitch_integral += pitch_error * I;
+  
+  //roll_integral += roll_error * I;
+  
+  if (fabs(pitch_integral) > limit) 
+  {
+    pitch_integral = (pitch_integral/fabs(pitch_integral)) * limit;
+  }
+  /*
+  if (fabs(roll_integral) > limit) 
+  {
+    roll_integral = (roll_integral/fabs(roll_integral)) * limit;
+  }
+  */
+  //combination of Proportional, Differential and Integral control
+  //for motor 0 and 2
+  pwm_control[0] = Thrust + pitch_error * P + pitch_velocity * D + pitch_integral;
+  pwm_control[2] = Thrust + pitch_error * P + pitch_velocity * D + pitch_integral;
+  //for motor 1 and 3
+  pwm_control[1] = Thrust - pitch_error * P - pitch_velocity * D - pitch_integral;
+  pwm_control[3] = Thrust - pitch_error * P - pitch_velocity * D - pitch_integral;
+  
+  //We need to modify(add) Roll PID to the PWM values.
+  
+  previous_pitch = Pitch;
+  //previous_roll = Roll;
+  
+  //fprintf(f, "%f,%f,%f,%f,%f\n", Pitch, pwm_control[0] - neutral_power, pitch_error * P, pitch_velocity * D, pitch_integral);
+  //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0] - neutral_power, pitch_error * P, pitch_velocity * D, pitch_integral);
+  
    
 }
