@@ -59,12 +59,11 @@ typedef struct{
 
 struct Keyboard {
   char key_press;
-  int heartbeat;
-	float pitch;
+  float pitch;
 	float roll;
 	float yaw;
 	float thrust;
-  int version;
+  int heartbeat;
 };
 
  
@@ -99,7 +98,7 @@ float pitch_angle=0; //pitch_acceleration
 float roll_angle=0;  //roll_acceleration
 float Roll=0;        //roll values from combination of accelerometer and gyro 
 float Pitch=0;        //pitch values from combination of accelerometer and gyro 
-float A=0.02;        //complementary coefficicent
+float A=0.008;        //complementary coefficicent
 //week2
 Keyboard* shared_memory; 
 int run_program=1;
@@ -141,10 +140,14 @@ int main (int argc, char *argv[])
     
     //to refresh values from shared memory first 
     Keyboard keyboard=*shared_memory;
-    
+    /*while(run_program==1)
+    {
+     keyboard=*shared_memory;
+    printf("%c  %f  %f  %f  %f  %d\n", keyboard.key_press, keyboard.pitch, keyboard.roll, keyboard.yaw, keyboard.thrust, keyboard.heartbeat);
+    }
     //Feb 2nd
     //FILE *f = fopen("Pitch_Data.csv", "w");
-    
+    return 0; */
     while(run_program==1)
     {
       read_imu();      
@@ -497,12 +500,12 @@ Control+c is pressed in student code
   {
     oldheartbeat=keyp->heartbeat;
     beat_timer=curr_time;
-  } /*
+  } 
   else if(curr_time-beat_timer>250)
   {
     printf("Keyboard Timeout. \n");
     run_program=0;      
-  }*/
+  }
 }
 
 /*
@@ -596,15 +599,19 @@ void set_PWM( uint8_t channel, float time_on_us)
 void pid_update(/*FILE *f*/Keyboard *keyp)
 {
   float neutral_power = 1400;
-  float Thrust = neutral_power;
+  float Thrust;
+  Thrust = neutral_power - ((keyp->thrust - 128) / 112) * 100;
+  //float Desire_pitch = 0;
   float Desire_pitch = -((keyp->pitch - 128) / 112) * 25;
-  printf("%f  \n", Desire_pitch);
+  //printf("%f    \n:, Desire_pitch);
+  printf("%c  %f  %f  %f  %f  %d\n", keyp->key_press, keyp->pitch, keyp->roll, keyp->yaw, keyp->thrust, keyp->heartbeat);
+  //printf("%f  \n", keyp->thrust);
   //Do we need to add another series of PID values?
   
   
-  float P = 8;
-  float D = 150;
-  float I = 0.015;
+  float P = 9.5;    //P = 8
+  float D = 150;  //D = 150
+  float I = 0.012;    //I = 0.015
   /*
   // proportional control for motor 0 and 2, which use + 
   pwm_control[0] = neutral_power + (Pitch - 0) * P;
