@@ -22,7 +22,7 @@
 #define PWR_MGMT_1       0x6B // Device defaults to the SLEEP mode
 #define PWR_MGMT_2       0x6C
 //week3
-#define PWM_MAX 1700
+#define PWM_MAX 1900
 #define frequency 25000000.0
 #define LED0 0x6			
 #define LED0_ON_L 0x6		
@@ -77,7 +77,8 @@ void safety_check(Keyboard *keyp);
 void init_pwm();
 void init_motor(uint8_t channel);
 void set_PWM( uint8_t channel, float time_on_us);
-void pid_update(/*FILE *f*/Keyboard *keyp);
+void pid_update(/*FILE *f*/);
+void get_joystick(Keyboard *keyp);
 
 
 
@@ -98,7 +99,7 @@ float pitch_angle=0; //pitch_acceleration
 float roll_angle=0;  //roll_acceleration
 float Roll=0;        //roll values from combination of accelerometer and gyro 
 float Pitch=0;        //pitch values from combination of accelerometer and gyro 
-float A=0.008;        //complementary coefficicent
+float A=0.004;        //complementary coefficicent
 //week2
 Keyboard* shared_memory; 
 int run_program=1;
@@ -112,11 +113,18 @@ float pwm_control[4];
 //week4
 float previous_pitch = 0; //previous pitch velocity for differential control
 float pitch_integral = 0; //integral pitch for integral control 
-//float previous_roll = 0; //previous roll velocity for differential control
-//float roll_integral = 0; //integral roll for integral control 
+float previous_roll = 0; //previous roll velocity for differential control
+float roll_integral = 0; //integral roll for integral control 
 
 //Feb 2nd
 //FILE *f; // write a csv file to store some values 
+//week5
+float Thrust;
+float Desire_pitch;
+float Desire_roll;
+//week6
+float Desire_yaw = 0;
+
  
 int main (int argc, char *argv[])
 {
@@ -148,8 +156,39 @@ int main (int argc, char *argv[])
     //Feb 2nd
     //FILE *f = fopen("Pitch_Data.csv", "w");
     return 0; */
+    
+    //week5
+    int flag = -1;
+    
     while(run_program==1)
-    {
+    { 
+      keyboard=*shared_memory;
+      safety_check(&keyboard);
+      
+      if (keyboard.key_press == '!') 
+      {
+        flag = 1;
+      } 
+      else if (keyboard.key_press == '"')
+      {
+        flag = 0;
+      }
+      
+      if (flag == 1) 
+      {
+        set_PWM(0, 1000); // motor 0
+        set_PWM(1, 1000); // motor 1
+        set_PWM(2, 1000); // motor 2
+        set_PWM(3, 1000); // motor 3
+        if (keyboard.key_press == '#')
+        {
+          printf("Calibration is starting, please wait a moment\n");
+          calibrate_imu();
+          printf("Calibration finished!\n");
+        }
+      }
+      else if (flag == 0) {
+      
       read_imu();      
       update_filter();
       
@@ -160,15 +199,15 @@ int main (int argc, char *argv[])
       //printf(" %f.   %f\n", roll_angle, pitch_angle);
       //printf("%8.4f\n", Pitch);
       
-      keyboard=*shared_memory;
+      //keyboard=*shared_memory;
       
       //printf("%d \n",keyboard.heartbeat); 
       //printf("%c \n",keyboard.key_press);
       //printf("%f \n", keyboard.pitch);
       
-      safety_check(&keyboard);
-      
-      pid_update(/*f*/&keyboard);
+      //safety_check(&keyboard);
+      get_joystick(&keyboard);
+      pid_update(/*f*/);
       set_PWM(0, pwm_control[0]);    //speed between 1000 and PWM_MAX, motor 0-3
       set_PWM(1, pwm_control[1]);    //speed between 1000 and PWM_MAX, motor 0-3
       set_PWM(2, pwm_control[2]);    //speed between 1000 and PWM_MAX, motor 0-3
@@ -176,6 +215,7 @@ int main (int argc, char *argv[])
       
       //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0], pwm_control[1], pwm_control[2], pwm_control[3]);
       //printf("%10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0], pwm_control[1]);
+      }
     }
     set_PWM(0, 1000); // motor 0
     set_PWM(1, 1000); // motor 1
@@ -193,7 +233,12 @@ int main (int argc, char *argv[])
 void calibrate_imu()
 {
   int times=3000;
-  float sum[6]={0.0,0.0,0.0,0.0,0.0,0.0};  
+  float sum[6]={0.0,0.0,0.0,0.0,0.0,0.0};
+  x_gyro_calibration = 0;
+  y_gyro_calibration = 0;
+  z_gyro_calibration = 0;
+  roll_calibration = 0;
+  pitch_calibration = 0;  
   for (int i=0;i<times;i++)
   {
     read_imu();
@@ -452,7 +497,7 @@ Control+c is pressed in student code
   {
      printf("Program ends: gyro z absolute rate larger than 300 deg/sec.\n\r");
      run_program=0;
-  }
+  }/*
   else if (imu_data[3] > 1.8)
   {
      printf("Program ends: x accel value larger than 1.8 g.\n\r");
@@ -472,7 +517,7 @@ Control+c is pressed in student code
   {
      printf("Program ends: all accel values smaller than 0.25 g.\n\r");
      run_program=0;
-  }
+  }*/
   else if (abs(Roll) > 45)
   {
      printf("Program ends: Roll angle > 45 or < -45.\n\r");
@@ -596,22 +641,19 @@ void set_PWM( uint8_t channel, float time_on_us)
   //}
 }
 
-void pid_update(/*FILE *f*/Keyboard *keyp)
-{
-  float neutral_power = 1400;
-  float Thrust;
-  Thrust = neutral_power - ((keyp->thrust - 128) / 112) * 100;
-  //float Desire_pitch = 0;
-  float Desire_pitch = -((keyp->pitch - 128) / 112) * 25;
-  //printf("%f    \n:, Desire_pitch);
-  printf("%c  %f  %f  %f  %f  %d\n", keyp->key_press, keyp->pitch, keyp->roll, keyp->yaw, keyp->thrust, keyp->heartbeat);
-  //printf("%f  \n", keyp->thrust);
-  //Do we need to add another series of PID values?
-  
-  
-  float P = 9.5;    //P = 8
-  float D = 150;  //D = 150
-  float I = 0.012;    //I = 0.015
+void pid_update(/*FILE *f*/)
+{ 
+  // PID for pitch 
+  float P_pitch = 22; ///13; //8.5; //9.5;      //P = 8
+  float D_pitch = 580; //200; //180;      //150;      //D = 150
+  float I_pitch = 0.7;  //0.02;     //0.012;    //I = 0.015
+  // PID for roll
+  float P_roll = 22;
+  float D_roll = 560;
+  float I_roll = 0.7;
+  // week 6
+  // P control for yaw
+  float P_yaw = 2;
   /*
   // proportional control for motor 0 and 2, which use + 
   pwm_control[0] = neutral_power + (Pitch - 0) * P;
@@ -621,11 +663,18 @@ void pid_update(/*FILE *f*/Keyboard *keyp)
   pwm_control[3] = neutral_power - (Pitch - 0) * P;
   */
   float pitch_error = Pitch - Desire_pitch;
+  float roll_error = Roll - Desire_roll;
+  float yaw_error = imu_data[2] - Desire_yaw;
   float pitch_velocity;
+  float roll_velocity;
   pitch_velocity = Pitch - previous_pitch;
+  roll_velocity = Roll - previous_roll;
   //float roll_error = Roll - 0;
   //float roll_velocity;
   //roll_velocity = Roll - previous_roll;  
+  //printf("%f    %f    \n", Desire_pitch, Pitch);
+  //printf("%f      %f    \n", Desire_roll, Roll);
+  printf("%f      %f      \n", Desire_yaw, imu_data[2]);
   
   
   /*
@@ -637,14 +686,14 @@ void pid_update(/*FILE *f*/Keyboard *keyp)
   pwm_control[3] = neutral_power - pitch_velocity * D;
   */
   //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", pitch_velocity, pwm_control[0], pwm_control[1], pwm_control[2], pwm_control[3]);
-  int limit = 100;
+  int limit = 80;
   
   //Do we need to add another limit?
   
   
-  pitch_integral += pitch_error * I;
+  pitch_integral += pitch_error * I_pitch;
   
-  //roll_integral += roll_error * I;
+  roll_integral += roll_error * I_roll;
   
   if (fabs(pitch_integral) > limit) 
   {
@@ -658,19 +707,32 @@ void pid_update(/*FILE *f*/Keyboard *keyp)
   */
   //combination of Proportional, Differential and Integral control
   //for motor 0 and 2
-  pwm_control[0] = Thrust + pitch_error * P + pitch_velocity * D + pitch_integral;
-  pwm_control[2] = Thrust + pitch_error * P + pitch_velocity * D + pitch_integral;
+  pwm_control[0] = Thrust + pitch_error * P_pitch + pitch_velocity * D_pitch + pitch_integral + roll_error * P_roll + roll_velocity * D_roll + roll_integral + yaw_error * P_yaw;
+  pwm_control[2] = Thrust + pitch_error * P_pitch + pitch_velocity * D_pitch + pitch_integral - roll_error * P_roll - roll_velocity * D_roll - roll_integral - yaw_error * P_yaw;
   //for motor 1 and 3
-  pwm_control[1] = Thrust - pitch_error * P - pitch_velocity * D - pitch_integral;
-  pwm_control[3] = Thrust - pitch_error * P - pitch_velocity * D - pitch_integral;
+  pwm_control[1] = Thrust - pitch_error * P_pitch - pitch_velocity * D_pitch - pitch_integral + roll_error * P_roll + roll_velocity * D_roll + roll_integral - yaw_error * P_yaw;
+  pwm_control[3] = Thrust - pitch_error * P_pitch - pitch_velocity * D_pitch - pitch_integral - roll_error * P_roll - roll_velocity * D_roll - roll_integral + yaw_error * P_yaw;
   
   //We need to modify(add) Roll PID to the PWM values.
   
   previous_pitch = Pitch;
-  //previous_roll = Roll;
+  previous_roll = Roll;
+  
   
   //fprintf(f, "%f,%f,%f,%f,%f\n", Pitch, pwm_control[0] - neutral_power, pitch_error * P, pitch_velocity * D, pitch_integral);
-  //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0] - neutral_power, pitch_error * P, pitch_velocity * D, pitch_integral);
-  
-   
+  //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0] - 1400, pitch_error * P, pitch_velocity * D, pitch_integral); 
+}
+
+void get_joystick(Keyboard *keyp) 
+{
+  float neutral_power = 1550;
+  Thrust = neutral_power - ((keyp->thrust - 128) / 112) * 100;
+  //float Desire_pitch = 0;
+  Desire_pitch = -((keyp->pitch - 128) / 112) * 25;
+  Desire_roll = ((keyp->roll - 128) / 112) * 25;
+  Desire_yaw = ((keyp->yaw - 128) / 112) * 45;
+  //printf("%f    \n:, Desire_pitch);
+  //printf("%c  %f  %f  %f  %f  %d\n", keyp->key_press, keyp->pitch, keyp->roll, keyp->yaw, keyp->thrust, keyp->heartbeat);
+  //printf("%f  \n", keyp->thrust);
+  //Do we need to add another series of PID values?;
 }
