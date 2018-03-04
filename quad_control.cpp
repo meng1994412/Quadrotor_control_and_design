@@ -24,12 +24,12 @@
 //week3
 #define PWM_MAX 1900
 #define frequency 25000000.0
-#define LED0 0x6			
-#define LED0_ON_L 0x6		
-#define LED0_ON_H 0x7		
-#define LED0_OFF_L 0x8		
-#define LED0_OFF_H 0x9		
-#define LED_MULTIPLYER 4	
+#define LED0 0x6
+#define LED0_ON_L 0x6
+#define LED0_ON_H 0x7
+#define LED0_OFF_L 0x8
+#define LED0_OFF_H 0x9
+#define LED_MULTIPLYER 4
 
 
 enum Ascale {
@@ -38,7 +38,7 @@ enum Ascale {
   AFS_8G,
   AFS_16G
 };
- 
+
 enum Gscale {
   GFS_250DPS = 0,
   GFS_500DPS,
@@ -66,10 +66,10 @@ struct Keyboard {
   int heartbeat;
 };
 
- 
+
 int setup_imu();
-void calibrate_imu();      
-void read_imu();    
+void calibrate_imu();
+void read_imu();
 void update_filter();
 void setup_keyboard();
 void trap(int signal);
@@ -97,11 +97,11 @@ struct timespec te;
 float yaw=0;
 float pitch_angle=0; //pitch_acceleration
 float roll_angle=0;  //roll_acceleration
-float Roll=0;        //roll values from combination of accelerometer and gyro 
-float Pitch=0;        //pitch values from combination of accelerometer and gyro 
+float Roll=0;        //roll values from combination of accelerometer and gyro
+float Pitch=0;        //pitch values from combination of accelerometer and gyro
 float A=0.004;        //complementary coefficicent
 //week2
-Keyboard* shared_memory; 
+Keyboard* shared_memory;
 int run_program=1;
 //week2
 struct timeval tem;
@@ -112,12 +112,12 @@ int pwm;
 float pwm_control[4];
 //week4
 float previous_pitch = 0; //previous pitch velocity for differential control
-float pitch_integral = 0; //integral pitch for integral control 
+float pitch_integral = 0; //integral pitch for integral control
 float previous_roll = 0; //previous roll velocity for differential control
-float roll_integral = 0; //integral roll for integral control 
+float roll_integral = 0; //integral roll for integral control
 
 //Feb 2nd
-//FILE *f; // write a csv file to store some values 
+//FILE *f; // write a csv file to store some values
 //week5
 float Thrust;
 float Desire_pitch;
@@ -125,13 +125,13 @@ float Desire_roll;
 //week6
 float Desire_yaw = 0;
 
- 
+
 int main (int argc, char *argv[])
 {
     //week2
     gettimeofday(&tem,NULL);
     beat_timer=tem.tv_sec*1000LL+tem.tv_usec/1000;
-    
+
     //week3
     init_pwm();
     init_motor(0);
@@ -139,14 +139,14 @@ int main (int argc, char *argv[])
     init_motor(2);
     init_motor(3);
     delay(1000);
-    
+
     setup_imu();
     calibrate_imu();
-    
+
     setup_keyboard();
     signal(SIGINT, &trap);
-    
-    //to refresh values from shared memory first 
+
+    //to refresh values from shared memory first
     Keyboard keyboard=*shared_memory;
     /*while(run_program==1)
     {
@@ -156,25 +156,25 @@ int main (int argc, char *argv[])
     //Feb 2nd
     //FILE *f = fopen("Pitch_Data.csv", "w");
     return 0; */
-    
+
     //week5
     int flag = -1;
-    
+
     while(run_program==1)
-    { 
+    {
       keyboard=*shared_memory;
       safety_check(&keyboard);
-      
-      if (keyboard.key_press == '!') 
+
+      if (keyboard.key_press == '!')
       {
         flag = 1;
-      } 
+      }
       else if (keyboard.key_press == '"')
       {
         flag = 0;
       }
-      
-      if (flag == 1) 
+
+      if (flag == 1)
       {
         set_PWM(0, 1000); // motor 0
         set_PWM(1, 1000); // motor 1
@@ -188,23 +188,23 @@ int main (int argc, char *argv[])
         }
       }
       else if (flag == 0) {
-      
-      read_imu();      
+
+      read_imu();
       update_filter();
-      
+
       //printf("x_gyro: %8.4f, y_gyro: %8.4f, z_gyro: %8.4f, roll_angle: %8.4f, pitch_angle: %8.4f\n",imu_data[0],imu_data[1],imu_data[2], roll_angle, pitch_angle);
       //printf("Roll: Roll_x: %f. Gyro_x: %f\n", roll_angle, imu_data[0]);
       //printf("Pitch: Pitch_y: %f. Gyro_y: %f\n", pitch_angle, );
       //printf("%f %f %f\n",imu_data[3],imu_data[4],imu_data[5]);
       //printf(" %f.   %f\n", roll_angle, pitch_angle);
       //printf("%8.4f\n", Pitch);
-      
+
       //keyboard=*shared_memory;
-      
-      //printf("%d \n",keyboard.heartbeat); 
+
+      //printf("%d \n",keyboard.heartbeat);
       //printf("%c \n",keyboard.key_press);
       //printf("%f \n", keyboard.pitch);
-      
+
       //safety_check(&keyboard);
       get_joystick(&keyboard);
       pid_update(/*f*/);
@@ -212,7 +212,7 @@ int main (int argc, char *argv[])
       set_PWM(1, pwm_control[1]);    //speed between 1000 and PWM_MAX, motor 0-3
       set_PWM(2, pwm_control[2]);    //speed between 1000 and PWM_MAX, motor 0-3
       set_PWM(3, pwm_control[3]);    //speed between 1000 and PWM_MAX, motor 0-3
-      
+
       //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0], pwm_control[1], pwm_control[2], pwm_control[3]);
       //printf("%10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0], pwm_control[1]);
       }
@@ -221,13 +221,13 @@ int main (int argc, char *argv[])
     set_PWM(1, 1000); // motor 1
     set_PWM(2, 1000); // motor 2
     set_PWM(3, 1000); // motor 3
-    
+
     //Feb 2nd
     //fclose(f);
-    
+
     return 0;
-   
-  
+
+
 }
 
 void calibrate_imu()
@@ -238,7 +238,7 @@ void calibrate_imu()
   y_gyro_calibration = 0;
   z_gyro_calibration = 0;
   roll_calibration = 0;
-  pitch_calibration = 0;  
+  pitch_calibration = 0;
   for (int i=0;i<times;i++)
   {
     read_imu();
@@ -247,12 +247,12 @@ void calibrate_imu()
       sum[j]+=imu_data[j];
     }
     sum[3]+=roll_angle;
-    sum[4]+=pitch_angle; 
+    sum[4]+=pitch_angle;
   }
   x_gyro_calibration=-sum[0]/times;
   y_gyro_calibration=-sum[1]/times;
   z_gyro_calibration=-sum[2]/times;
-  
+
   roll_calibration=-sum[3]/times;
   pitch_calibration=-sum[4]/times;
   /*
@@ -265,12 +265,12 @@ void calibrate_imu()
 
 void read_imu()
 {
-  int address=59;//todo: set address value for accel x value 
+  int address=59;//todo: set address value for accel x value
   float ax=0;
   float az=0;
-  float ay=0; 
+  float ay=0;
   int vh,vl;
-  
+
   //read in data
   vh=wiringPiI2CReadReg8(imu,address);
   vl=wiringPiI2CReadReg8(imu,address+1);
@@ -280,10 +280,10 @@ void read_imu()
   {
     vw=vw ^ 0xffff;
     vw=-vw-1;
-  }          
+  }
   imu_data[3]=1.0*vw/32767*2;//  todo: convert vw from raw values to "g's"
-  
-  
+
+
   address=61;//todo: set address value for accel y value
   vh=wiringPiI2CReadReg8(imu,address);
   vl=wiringPiI2CReadReg8(imu,address+1);
@@ -292,10 +292,10 @@ void read_imu()
   {
     vw=vw ^ 0xffff;
     vw=-vw-1;
-  }          
+  }
   imu_data[4]=-1.0*vw/32767*2;//Todo: convert vw from raw valeus to "g's"
-  
-  
+
+
   address=63;//todo: set addres value for accel z value;
   vh=wiringPiI2CReadReg8(imu,address);
   vl=wiringPiI2CReadReg8(imu,address+1);
@@ -304,10 +304,10 @@ void read_imu()
   {
     vw=vw ^ 0xffff;
     vw=-vw-1;
-  }          
+  }
   imu_data[5]=-1.0*vw/32767*2;//todo: convert vw from raw values to g's
-  
-  
+
+
   address=67;//todo: set addres value for gyro x value;
   vh=wiringPiI2CReadReg8(imu,address);
   vl=wiringPiI2CReadReg8(imu,address+1);
@@ -316,9 +316,9 @@ void read_imu()
   {
     vw=vw ^ 0xffff;
     vw=-vw-1;
-  }          
+  }
   imu_data[0]=x_gyro_calibration+1.0*vw/32767*500;////todo: convert vw from raw values to degrees/second
-  
+
   address=69;//todo: set addres value for gyro y value;
   vh=wiringPiI2CReadReg8(imu,address);
   vl=wiringPiI2CReadReg8(imu,address+1);
@@ -327,9 +327,9 @@ void read_imu()
   {
     vw=vw ^ 0xffff;
     vw=-vw-1;
-  }          
+  }
  imu_data[1]=y_gyro_calibration+1.0*vw/32767*500;////todo: convert vw from raw values to degrees/second
-  
+
   address=71;////todo: set addres value for gyro z value;
   vh=wiringPiI2CReadReg8(imu,address);
   vl=wiringPiI2CReadReg8(imu,address+1);
@@ -338,13 +338,13 @@ void read_imu()
   {
     vw=vw ^ 0xffff;
     vw=-vw-1;
-  }          
+  }
   imu_data[2]=z_gyro_calibration+1.0*vw/32767*500;////todo: convert vw from raw values to degrees/second
-  
+
   //Roll & Pitch angle
   roll_angle = atan2(imu_data[4],imu_data[5])*180/M_PI+roll_calibration;
   pitch_angle = atan2(imu_data[3],imu_data[5])*180/M_PI+pitch_calibration;
-  
+
 
 
 }
@@ -356,23 +356,23 @@ void update_filter()
   timespec_get(&te,TIME_UTC);
   time_curr=te.tv_nsec;
   //compute time since last execution
-  float imu_diff=time_curr-time_prev;           
-  
+  float imu_diff=time_curr-time_prev;
+
   //check for rollover
   if(imu_diff<=0)
   {
     imu_diff+=1000000000;
   }
   //convert to seconds
-  
-  
+
+
   imu_diff=imu_diff/1000000000;
   time_prev=time_curr;
-  
-  //comp. filter for roll, pitch here: 
+
+  //comp. filter for roll, pitch here:
   Pitch=roll_angle*A+(1-A)*(imu_data[0]*imu_diff+Pitch);
   Roll=pitch_angle*A+(1-A)*(imu_data[1]*imu_diff+Roll);
-  
+
   //print out the values
   //printf("%10.5f %10.5f %10.5f\n", Roll, roll_angle, imu_data[0]); //Roll values, roll_acceleration values, gyro values.
   //printf("%10.5f %10.5f %10.5f\n", Pitch, pitch_angle, imu_data[1]); //Pitch values, pitch_acceleration values, gyro values.
@@ -382,11 +382,11 @@ void update_filter()
 int setup_imu()
 {
   wiringPiSetup ();
-  
-  
+
+
   //setup imu on I2C
   imu=wiringPiI2CSetup (0x68) ; //accel/gyro address
-  
+
   if(imu==-1)
   {
     printf("-----cant connect to I2C device %d --------\n",imu);
@@ -394,29 +394,29 @@ int setup_imu()
   }
   else
   {
-  
+
     printf("connected to i2c device %d\n",imu);
     printf("imu who am i is %d \n",wiringPiI2CReadReg8(imu,0x75));
-    
+
     uint8_t Ascale = AFS_2G;     // AFS_2G, AFS_4G, AFS_8G, AFS_16G
     uint8_t Gscale = GFS_500DPS; // GFS_250DPS, GFS_500DPS, GFS_1000DPS, GFS_2000DPS
-    
-    
+
+
     //init imu
     wiringPiI2CWriteReg8(imu,PWR_MGMT_1, 0x00);
     printf("                    \n\r");
     wiringPiI2CWriteReg8(imu,PWR_MGMT_1, 0x01);
-    wiringPiI2CWriteReg8(imu, CONFIG, 0x00);  
-    wiringPiI2CWriteReg8(imu, SMPLRT_DIV, 0x00); //0x04        
+    wiringPiI2CWriteReg8(imu, CONFIG, 0x00);
+    wiringPiI2CWriteReg8(imu, SMPLRT_DIV, 0x00); //0x04
     int c=wiringPiI2CReadReg8(imu,  GYRO_CONFIG);
     wiringPiI2CWriteReg8(imu,  GYRO_CONFIG, c & ~0xE0);
     wiringPiI2CWriteReg8(imu, GYRO_CONFIG, c & ~0x18);
-    wiringPiI2CWriteReg8(imu, GYRO_CONFIG, c | Gscale << 3);       
+    wiringPiI2CWriteReg8(imu, GYRO_CONFIG, c | Gscale << 3);
     c=wiringPiI2CReadReg8(imu, ACCEL_CONFIG);
-    wiringPiI2CWriteReg8(imu,  ACCEL_CONFIG, c & ~0xE0); // Clear self-test bits [7:5] 
+    wiringPiI2CWriteReg8(imu,  ACCEL_CONFIG, c & ~0xE0); // Clear self-test bits [7:5]
     wiringPiI2CWriteReg8(imu,  ACCEL_CONFIG, c & ~0x18); // Clear AFS bits [4:3]
-    wiringPiI2CWriteReg8(imu,  ACCEL_CONFIG, c | Ascale << 3);      
-    c=wiringPiI2CReadReg8(imu, ACCEL_CONFIG2);         
+    wiringPiI2CWriteReg8(imu,  ACCEL_CONFIG, c | Ascale << 3);
+    c=wiringPiI2CReadReg8(imu, ACCEL_CONFIG2);
     wiringPiI2CWriteReg8(imu,  ACCEL_CONFIG2, c & ~0x0F); //
     wiringPiI2CWriteReg8(imu,  ACCEL_CONFIG2,  c | 0x00);
   }
@@ -427,23 +427,23 @@ int setup_imu()
 void setup_keyboard()
 {
 
-  int segment_id;   
-  struct shmid_ds shmbuffer; 
-  int segment_size; 
-  const int shared_segment_size = 0x6400; 
+  int segment_id;
+  struct shmid_ds shmbuffer;
+  int segment_size;
+  const int shared_segment_size = 0x6400;
   int smhkey=33222;
-  
-  /* Allocate a shared memory segment.  */ 
-  segment_id = shmget (smhkey, shared_segment_size,IPC_CREAT | 0666); 
-  /* Attach the shared memory segment.  */ 
-  shared_memory = (Keyboard*) shmat (segment_id, 0, 0); 
-  printf ("shared memory attached at address %p\n", shared_memory); 
-  /* Determine the segment's size. */ 
-  shmctl (segment_id, IPC_STAT, &shmbuffer); 
-  segment_size  =               shmbuffer.shm_segsz; 
-  printf ("segment size: %d\n", segment_size); 
-  /* Write a string to the shared memory segment.  */ 
-  //sprintf (shared_memory, "test!!!!."); 
+
+  /* Allocate a shared memory segment.  */
+  segment_id = shmget (smhkey, shared_segment_size,IPC_CREAT | 0666);
+  /* Attach the shared memory segment.  */
+  shared_memory = (Keyboard*) shmat (segment_id, 0, 0);
+  printf ("shared memory attached at address %p\n", shared_memory);
+  /* Determine the segment's size. */
+  shmctl (segment_id, IPC_STAT, &shmbuffer);
+  segment_size  =               shmbuffer.shm_segsz;
+  printf ("segment size: %d\n", segment_size);
+  /* Write a string to the shared memory segment.  */
+  //sprintf (shared_memory, "test!!!!.");
 
 }
 
@@ -462,13 +462,13 @@ void trap(int signal)
    run_program=0;
 }
 
- 
+
 void safety_check(Keyboard *keyp)
 {
   /*
 Any gyro rate > 300 degrees/sec
-Any Accelerometer value >1.8 g’s
-All Accelerometer values <.25 g’s
+Any Accelerometer value >1.8 gï¿½s
+All Accelerometer values <.25 gï¿½s
 Roll angle > 45 or <-45
 Pitch angle >45 or <-45
 Keyboard press of space
@@ -476,13 +476,13 @@ Keyboard timeout
 Control+c is pressed in student code
 
   */
-  
+
   //week2
 
   gettimeofday(&tem,NULL);
-  long curr_time=tem.tv_sec*1000LL+tem.tv_usec/1000;  
+  long curr_time=tem.tv_sec*1000LL+tem.tv_usec/1000;
   //printf("%ld    \n", tem.tv_sec);
-  
+
   if (abs(imu_data[0]) > 300)
   {
      printf("Program ends: gyro x absolute rate larger than 300 deg/sec.\n\r");
@@ -507,7 +507,7 @@ Control+c is pressed in student code
   {
      printf("Program ends: y accel value larger than 1.8 g.\n\r");
      run_program=0;
-  }  
+  }
   else if (imu_data[5] > 1.8)
   {
      printf("Program ends: z accel value larger than 1.8 g.\n\r");
@@ -528,8 +528,8 @@ Control+c is pressed in student code
      printf("Program ends: Pitch angle > 45 or < -45.\n\r");
      run_program=0;
   }
-  
-  
+
+
   if(keyp->key_press == ' ')
   {
     printf("Space pressed. \n");
@@ -537,24 +537,24 @@ Control+c is pressed in student code
   }
   gettimeofday(&tem,NULL);
   curr_time=tem.tv_sec*1000LL+tem.tv_usec/1000;
-  
-  //printf("%ld   %ld\n",curr_time,beat_timer);  
-  
-  
+
+  //printf("%ld   %ld\n",curr_time,beat_timer);
+
+
   if (keyp->heartbeat != oldheartbeat)
   {
     oldheartbeat=keyp->heartbeat;
     beat_timer=curr_time;
-  } 
+  }
   else if(curr_time-beat_timer>250)
   {
     printf("Keyboard Timeout. \n");
-    run_program=0;      
+    run_program=0;
   }
 }
 
 /*
-Week 3 
+Week 3
 Functions
 */
 
@@ -565,11 +565,11 @@ void init_pwm()
     if(pwm==-1)
     {
       printf("-----cant connect to I2C device %d --------\n",pwm);
-     
+
     }
     else
     {
-  
+
       float freq =400.0*.95;
       float prescaleval = 25000000;
       prescaleval /= 4096;
@@ -642,20 +642,20 @@ void set_PWM( uint8_t channel, float time_on_us)
 }
 
 void pid_update(/*FILE *f*/)
-{ 
-  // PID for pitch 
-  float P_pitch = 22; ///13; //8.5; //9.5;      //P = 8
-  float D_pitch = 580; //200; //180;      //150;      //D = 150
-  float I_pitch = 0.7;  //0.02;     //0.012;    //I = 0.015
+{
+  // PID for pitch
+  float P_pitch = 12;//22; ///13; //8.5; //9.5;      //P = 8
+  float D_pitch = 200;//580; //200; //180;      //150;      //D = 150
+  float I_pitch = 0.02;//0.7;  //0.02;     //0.012;    //I = 0.015
   // PID for roll
-  float P_roll = 22;
-  float D_roll = 560;
-  float I_roll = 0.7;
+  float P_roll = 12;//22;
+  float D_roll = 200;//560;
+  float I_roll = 0.02;//0.7;
   // week 6
   // P control for yaw
-  float P_yaw = 2;
+  float P_yaw = 1;
   /*
-  // proportional control for motor 0 and 2, which use + 
+  // proportional control for motor 0 and 2, which use +
   pwm_control[0] = neutral_power + (Pitch - 0) * P;
   pwm_control[2] = neutral_power + (Pitch - 0) * P;
   // proportional control for motor 1 and 3, which use -
@@ -671,65 +671,65 @@ void pid_update(/*FILE *f*/)
   roll_velocity = Roll - previous_roll;
   //float roll_error = Roll - 0;
   //float roll_velocity;
-  //roll_velocity = Roll - previous_roll;  
+  //roll_velocity = Roll - previous_roll;
   //printf("%f    %f    \n", Desire_pitch, Pitch);
   //printf("%f      %f    \n", Desire_roll, Roll);
   printf("%f      %f      \n", Desire_yaw, imu_data[2]);
-  
-  
+
+
   /*
-  // differential control for motor 0 and 2, which use + 
+  // differential control for motor 0 and 2, which use +
   pwm_control[0] = neutral_power + pitch_velocity * D;
   pwm_control[2] = neutral_power + pitch_velocity * D;
-  // differential control for motor 1 and 3, which use - 
+  // differential control for motor 1 and 3, which use -
   pwm_control[1] = neutral_power - pitch_velocity * D;
   pwm_control[3] = neutral_power - pitch_velocity * D;
   */
   //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", pitch_velocity, pwm_control[0], pwm_control[1], pwm_control[2], pwm_control[3]);
   int limit = 80;
-  
+
   //Do we need to add another limit?
-  
-  
+
+
   pitch_integral += pitch_error * I_pitch;
-  
+
   roll_integral += roll_error * I_roll;
-  
-  if (fabs(pitch_integral) > limit) 
+
+  if (fabs(pitch_integral) > limit)
   {
     pitch_integral = (pitch_integral/fabs(pitch_integral)) * limit;
   }
   /*
-  if (fabs(roll_integral) > limit) 
+  if (fabs(roll_integral) > limit)
   {
     roll_integral = (roll_integral/fabs(roll_integral)) * limit;
   }
   */
   //combination of Proportional, Differential and Integral control
   //for motor 0 and 2
-  pwm_control[0] = Thrust + pitch_error * P_pitch + pitch_velocity * D_pitch + pitch_integral + roll_error * P_roll + roll_velocity * D_roll + roll_integral + yaw_error * P_yaw;
-  pwm_control[2] = Thrust + pitch_error * P_pitch + pitch_velocity * D_pitch + pitch_integral - roll_error * P_roll - roll_velocity * D_roll - roll_integral - yaw_error * P_yaw;
+  pwm_control[0] = Thrust + pitch_error * P_pitch + pitch_velocity * D_pitch + pitch_integral + roll_error * P_roll + roll_velocity * D_roll - roll_integral + yaw_error * P_yaw;
+  pwm_control[2] = Thrust + pitch_error * P_pitch + pitch_velocity * D_pitch + pitch_integral - roll_error * P_roll - roll_velocity * D_roll + roll_integral - yaw_error * P_yaw;
   //for motor 1 and 3
-  pwm_control[1] = Thrust - pitch_error * P_pitch - pitch_velocity * D_pitch - pitch_integral + roll_error * P_roll + roll_velocity * D_roll + roll_integral - yaw_error * P_yaw;
-  pwm_control[3] = Thrust - pitch_error * P_pitch - pitch_velocity * D_pitch - pitch_integral - roll_error * P_roll - roll_velocity * D_roll - roll_integral + yaw_error * P_yaw;
-  
+  pwm_control[1] = Thrust - pitch_error * P_pitch - pitch_velocity * D_pitch - pitch_integral + roll_error * P_roll + roll_velocity * D_roll - roll_integral - yaw_error * P_yaw;
+  pwm_control[3] = Thrust - pitch_error * P_pitch - pitch_velocity * D_pitch - pitch_integral - roll_error * P_roll - roll_velocity * D_roll + roll_integral + yaw_error * P_yaw;
+
   //We need to modify(add) Roll PID to the PWM values.
-  
+
   previous_pitch = Pitch;
   previous_roll = Roll;
-  
-  
+
+
   //fprintf(f, "%f,%f,%f,%f,%f\n", Pitch, pwm_control[0] - neutral_power, pitch_error * P, pitch_velocity * D, pitch_integral);
-  //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0] - 1400, pitch_error * P, pitch_velocity * D, pitch_integral); 
+  //printf("%10.5f    %10.5f    %10.5f    %10.5f    %10.5f\n", Pitch, pwm_control[0] - 1400, pitch_error * P, pitch_velocity * D, pitch_integral);
 }
 
-void get_joystick(Keyboard *keyp) 
+void get_joystick(Keyboard *keyp)
 {
   float neutral_power = 1550;
   Thrust = neutral_power - ((keyp->thrust - 128) / 112) * 100;
   //float Desire_pitch = 0;
-  Desire_pitch = -((keyp->pitch - 128) / 112) * 25;
-  Desire_roll = ((keyp->roll - 128) / 112) * 25;
+  Desire_pitch = -((keyp->pitch - 128) / 112) * 10;
+  Desire_roll = ((keyp->roll - 128) / 112) * 10;
   Desire_yaw = ((keyp->yaw - 128) / 112) * 45;
   //printf("%f    \n:, Desire_pitch);
   //printf("%c  %f  %f  %f  %f  %d\n", keyp->key_press, keyp->pitch, keyp->roll, keyp->yaw, keyp->thrust, keyp->heartbeat);
