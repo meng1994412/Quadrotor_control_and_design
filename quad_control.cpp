@@ -124,6 +124,8 @@ float roll_integral = 0; //integral roll for integral control
 float Thrust;
 float Desire_pitch;
 float Desire_roll;
+float Desire_pitch_joystick;
+float Desire_roll_joystick;
 //week6
 float Desire_yaw = 0;
 //week8
@@ -131,10 +133,18 @@ Position local_p;
 long version_timer;
 int oldversion = -1;
 //week9
+float Desire_pitch_vive;
+float Desire_roll_vive;
+
 float Desire_x = 0;
 float x_vive_prev;
 float x_vive_estimate;
-float D_term = 0;
+float D_term_x = 0;
+//week10
+float Desire_y = 0;
+float y_vive_prev;
+float y_vive_estimate;
+float D_term_y;
 
  
 int main (int argc, char *argv[])
@@ -182,6 +192,10 @@ int main (int argc, char *argv[])
     local_p = *position;
     x_vive_estimate = local_p.x;
     x_vive_prev = x_vive_estimate;
+    y_vive_estimate = local_p.y;
+    y_vive_prev = y_vive_estimate;
+    
+    
     while(run_program==1)
     { 
       local_p = *position;
@@ -751,12 +765,12 @@ void pid_update(/*FILE *f*/)
   {
     pitch_integral = (pitch_integral/fabs(pitch_integral)) * limit;
   }
-  /*
+  
   if (fabs(roll_integral) > limit) 
   {
     roll_integral = (roll_integral/fabs(roll_integral)) * limit;
   }
-  */
+  
   //combination of Proportional, Differential and Integral control
   //for motor 0 and 2
   pwm_control[0] = Thrust + pitch_error * P_pitch + pitch_velocity * D_pitch + pitch_integral + roll_error * P_roll + roll_velocity * D_roll + roll_integral - yaw_error * P_yaw;
@@ -780,11 +794,11 @@ void get_joystick(Keyboard *keyp)
   float neutral_power = 1650;
   Thrust = neutral_power - ((keyp->thrust - 128) / 112) * 100;
   //float Desire_pitch = 0;
-  Desire_pitch = -((keyp->pitch - 128) / 112) * 5;
-  //Desire_roll = ((keyp->roll - 128) / 112) * 5;
+  Desire_pitch_joystick = -((keyp->pitch - 128) / 112) * 5;
+  Desire_roll_joystick = ((keyp->roll - 128) / 112) * 5;
   //Desire_yaw = ((keyp->yaw - 128) / 112) * 90;
   
-  //printf("%f    \n:, Desire_pitch);
+  //printf("%f    %f    \n", Desire_pitch_joystick, Desire_roll_joystick);
   //printf("%c  %f  %f  %f  %f  %d\n", keyp->key_press, keyp->pitch, keyp->roll, keyp->yaw, keyp->thrust, keyp->heartbeat);
   //printf("%f  \n", keyp->thrust);
   //Do we need to add another series of PID values?;
@@ -802,14 +816,33 @@ void vive_control(Position *lp)
     Desire_yaw = -90;
   }
   //week9
-  float P_x_vive = 0.03;
-  float D_x_vive = 0.4;
+  float P_x_vive = 0.05; //0.03;
+  float P_y_vive = 0.05;
+  float D_x_vive = 1.6; //0.7; //0.4;
+  float D_y_vive = 1.5; //0.7;
   x_vive_estimate = x_vive_estimate * 0.6 + lp->x * 0.4;
+  y_vive_estimate = y_vive_estimate * 0.6 + lp->y * 0.4;
   if (lp->version != oldversion)
   {
-    D_term = D_x_vive  * (x_vive_estimate - x_vive_prev);
+    D_term_x = D_x_vive * (x_vive_estimate - x_vive_prev);
+    D_term_y = D_y_vive * (y_vive_estimate - y_vive_prev);
   }
-  Desire_roll = P_x_vive * (-1) * (x_vive_estimate - Desire_x) - D_term;
-  printf("%f     %f      %f      %f\n", x_vive_estimate, x_vive_prev, P_x_vive * (-1) * (x_vive_estimate - Desire_x), - D_term);
+  Desire_roll_vive = P_x_vive * (-1) * (x_vive_estimate - Desire_x) - D_term_x;
+  Desire_pitch_vive = P_y_vive * (y_vive_estimate - Desire_y) + D_term_y;
+  if (abs(Desire_roll_vive) > 5) {
+    Desire_roll_vive = 5 * Desire_roll_vive / abs(Desire_roll_vive);
+  }
+  if (abs(Desire_pitch_vive) > 5) {
+    Desire_pitch_vive = 5 * Desire_pitch_vive / abs(Desire_pitch_vive);
+  }
+  
+  Desire_roll = Desire_roll_joystick * 0.5 + Desire_roll_vive * 0.5;
+  Desire_pitch = Desire_pitch_joystick * 0.5 + Desire_pitch_vive * 0.5;
+  
+  
+
+  //printf("%f     %f      %f      %f\n", x_vive_estimate, x_vive_prev, P_x_vive * (-1) * (x_vive_estimate - Desire_x), - D_term_x);
+  printf("%f    %f    %f    %f    %f    %f\n", lp->x, lp->y, P_x_vive * (-1) * (x_vive_estimate - Desire_x), - D_term_x, P_y_vive * (y_vive_estimate - Desire_y), D_term_y);
   x_vive_prev = lp->x;
+  y_vive_prev = lp->y;
 }
