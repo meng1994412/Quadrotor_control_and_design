@@ -1,3 +1,8 @@
 # Quadrotor Control and Design
-This project implements a real time embedded control for an autonomous electromechanical system.
-We build a quadrotor from commodity parts and create the software for controlling the quadrotor (high level and low level programming). Finally we make quadrotor fly autonomously.
+## Project Objectives
+* Assemble the electromechanical system of a quadrotor.
+* Program interfaces between embedded computer (Raspberry Pi running Linux) and external sensors and actuators (IMU, motor controllers).
+* Program and tune a time-critical control loop for stable flight
+* Create software stack that interacts with low-level code to achieve high-level behavior including:
+  1. Control the quadrotor with logitech joystick.
+  2. Autonomous flight with HTC vive.
