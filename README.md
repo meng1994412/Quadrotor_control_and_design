@@ -21,3 +21,11 @@
 * Logitech Joystick F310
 * HTC vive lighthouse
 
+## Weekly Milestones
+### Week 1 & 2
+* Set up IMU, SD card, wifi dongle, Raspberry Pi.
+* Calibrate gyro from X, Y, and Z direction, roll and pitch angles from corresponding X, Y acceleration.
+* Add complimentary filters to reduce the noises from acceleration in short term and drifts from gyro in long term.
+* Add safety check and control.
+
+### Week 3
