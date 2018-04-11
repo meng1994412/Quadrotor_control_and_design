@@ -39,4 +39,8 @@ Here is the electric system diagram for quadrotor:
 
 <img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring%20diagram.png" width="400">
 
+Here is the assembled quadrotor:
+
+<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/quadrotor_1.JPG" width="400">
+
 
