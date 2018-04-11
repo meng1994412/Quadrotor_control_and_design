@@ -30,3 +30,13 @@
 
 ### Week 3
 * Build quadrotor from commodity parts.
+* Check safty control
+* Set up proportional control (P control)
+* Set up proportional + differential control (PD control)
+* Set up proportional + integral + differential control (PID control)
+
+Here is the electric system diagram for quadrotor:
+
+<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring%20diagram.png" width="400">
+
+
