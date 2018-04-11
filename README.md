@@ -30,3 +30,5 @@
 
 ### Week 3
 * Build quadrotor from commodity parts.
+Here is the electric system diagram for quadrotor:
+![alt text](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring%20diagram.png "Wiring Diagram")
