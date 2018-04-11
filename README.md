@@ -29,3 +29,4 @@
 * Add safety check and control.
 
 ### Week 3
+* Build quadrotor from commodity parts.
