@@ -32,4 +32,4 @@
 * Build quadrotor from commodity parts.
 
 Here is the electric system diagram for quadrotor:
-![](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring%20diagram.png = 445x276)
+![](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring%20diagram.png =445x276)
