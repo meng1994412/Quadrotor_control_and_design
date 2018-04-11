@@ -30,10 +30,10 @@
 
 ### Week 3
 * Build quadrotor from commodity parts.
-* Check safty control
-* Set up proportional control (P control)
-* Set up proportional + differential control (PD control)
-* Set up proportional + integral + differential control (PID control)
+* Check safty control.
+* Set up proportional control (P control) w.r.t pitch. 
+* Set up proportional + differential control (PD control) w.r.t pitch.
+* Set up proportional + integral + differential control (PID control) w.r.t pitch.
 
 Here is the electric system diagram for quadrotor:
 
@@ -42,5 +42,11 @@ Here is the electric system diagram for quadrotor:
 Here is the assembled quadrotor:
 
 <img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/quadrotor_1.JPG" width="500">
+### Week 4
+* Tune the PID w.r.t pitch.
+* Build connection between joystick and quadrotor via virtual machine.
+* Test pause, unpause, calibrate, kill all buttons on the joystick. 
+
+Here is what can each button on joystick do:
 
 
