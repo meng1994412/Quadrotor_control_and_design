@@ -70,3 +70,5 @@ Here is what can each button on joystick do:
 * Change the desire pitch & roll control on joytick to ±10 degree.
 * 2-feet flight test (fly from one point to another point at 2-feet).
 
+#### Demo for joystick control of quadrotor
+![joystick control](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/demo/JoystickControlDemo.gif)
