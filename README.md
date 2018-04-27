@@ -1,6 +1,6 @@
 # Quadrotor Control and Design
 ## Project Objectives
-* Assemble the electromechanical system of a [quadrotor](#week-3).
+* Assemble the electromechanical system of a [quadrotor](#here-is-the-assembled-quadrotor:).
 * Program interfaces between embedded computer (Raspberry Pi running Linux) and external sensors and actuators (IMU, motor controllers).
 * Program and tune a time-critical control loop for stable flight
 * Create software stack that interacts with low-level code to achieve high-level behavior including:
