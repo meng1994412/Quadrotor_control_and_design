@@ -54,5 +54,5 @@ Here is what can each button on joystick do:
 
 ### Week 5
 * Tune the PID w.r.t pitch, which eventually reduce the overshoot and transient time.
-* Add desire pitch control on joystick [joystick](Week-4).
+* Add desire pitch control on joystick [joystick](#Week-4).
 * Add Thrust control on joystick.
