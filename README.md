@@ -52,4 +52,7 @@ Here is what can each button on joystick do:
 
 <img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/joystick%20demonstration.PNG" width="500">
 
-
+### Week 5
+* Tune the PID w.r.t pitch, which eventually reduce the overshoot and transient time.
+* Add desire pitch control on joystick.
+* Add Thrust control on joystick.
