@@ -18,7 +18,7 @@
 * SD Card
 * Wifi Dongle
 * Motor Controllers
-* Logitech Joystick F310
+* [Logitech Joystick F310](#week-4)
 * HTC vive lighthouse
 
 ## Weekly Milestones
@@ -54,5 +54,16 @@ Here is what can each button on joystick do:
 
 ### Week 5
 * Tune the PID w.r.t pitch, which eventually reduce the overshoot and transient time.
-* Add desire pitch control on joystick. [check joystick here](#week-4)
-* Add Thrust control on joystick. [check joystick here](#week-4)
+* Add desire pitch control on joystick (±25 degree). [check joystick here](#week-4)
+* Add Thrust control on joystick (1550 ± 100 pwm). [check joystick here](#week-4)
+* Set up proportional control (P control) w.r.t roll. 
+* Set up proportional + differential control (PD control) w.r.t roll.
+* Set up proportional + integral + differential control (PID control) w.r.t roll.
+
+### Week 6
+* Tune the PID w.r.t roll, which eventually reduce the overshoot and transient time.
+* Add desire roll control on joystick (±25 degree). [check joystick here](#week-4)
+* Add desire yaw control on joystick (±45 degree). [check joystick here](#week-4)
+* Ground flight test (fly from one point to another point at low level).
+
+
