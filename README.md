@@ -55,7 +55,7 @@ Here is what can each button on joystick do:
 ### Week 5
 * Tune the PID w.r.t pitch, which eventually reduce the overshoot and transient time.
 * Add desire pitch control on joystick (±25 degree). [check joystick here](#week-4)
-* Add Thrust control on joystick (1550 ± 100 pwm). [check joystick here](#week-4)
+* Add Thrust control on joystick (1250 ± 100 pwm). 
 * Set up proportional control (P control) w.r.t roll. 
 * Set up proportional + differential control (PD control) w.r.t roll.
 * Set up proportional + integral + differential control (PID control) w.r.t roll.
@@ -63,7 +63,10 @@ Here is what can each button on joystick do:
 ### Week 6
 * Tune the PID w.r.t roll, which eventually reduce the overshoot and transient time.
 * Add desire roll control on joystick (±25 degree). [check joystick here](#week-4)
-* Add desire yaw control on joystick (±45 degree). [check joystick here](#week-4)
+* Add desire yaw control on joystick (±45 degree). 
 * Ground flight test (fly from one point to another point at low level).
 
+### Week 7
+* Change the desire pitch & roll control on joytick to ±10 degree.
+* 2-feet flight test (fly from one point to another point at 2-feet).
 
