@@ -37,7 +37,7 @@
 
 Here is the electric system diagram for quadrotor:
 
-<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring%20diagram.png" width="500">
+<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring_diagram.png" width="500">
 
 Here is the assembled quadrotor:
 
@@ -50,7 +50,7 @@ Here is the assembled quadrotor:
 
 Here is what can each button on joystick do:
 
-<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/joystick%20demonstration.PNG" width="500">
+<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/joystick_demonstration.PNG" width="500">
 
 ### Week 5
 * Tune the PID w.r.t pitch, which eventually reduce the overshoot and transient time.
