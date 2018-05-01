@@ -72,3 +72,5 @@ Here is what can each button on joystick do:
 
 #### Demo for joystick control of quadrotor
 ![joystick control](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/demo/JoystickControlDemo.gif)
+
+### Week 8
