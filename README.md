@@ -5,7 +5,7 @@
 * Program and tune a time-critical control loop for stable flight
 * Create software stack that interacts with low-level code to achieve high-level behavior including:
   1. Control the quadrotor with [logitech joystick](#week-4) ([demo](#demo-for-joystick-control-of-quadrotor)).
-  2. Autonomous flight with HTC vive lighthouse.
+  2. Autonomous flight with [HTC vive lighthouse](#week-8).
 
 ## Software/Language Used 
 * C 
