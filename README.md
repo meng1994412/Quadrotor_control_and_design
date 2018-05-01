@@ -9,8 +9,8 @@
 
 ## Software/Language Used 
 * C 
-* MobaXterm
-* VMware Workstation Player
+* [MobaXterm](https://mobaxterm.mobatek.net/)
+* [VMware Workstation Player](https://www.vmware.com/products/workstation-player.html)
 
 ## Hardware Used
 * Raspberry Pi
@@ -19,7 +19,7 @@
 * Wifi Dongle
 * Motor Controllers
 * [Logitech Joystick F310](#week-4)
-* HTC vive lighthouse
+* [HTC vive lighthouse](#week-8)
 
 ## Weekly Milestones
 ### Week 1 & 2
