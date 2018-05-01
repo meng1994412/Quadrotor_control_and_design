@@ -13,7 +13,7 @@
 * [VMware Workstation Player](https://www.vmware.com/products/workstation-player.html)
 
 ## Hardware Used
-* Raspberry Pi
+* [Raspberry Pi](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/raspberry_pi.PNG)
 * IMU
 * SD Card
 * Wifi Dongle
@@ -35,7 +35,7 @@
 * Set up proportional + differential control (PD control) w.r.t pitch.
 * Set up proportional + integral + differential control (PID control) w.r.t pitch.
 
-Here is the electric system diagram for quadrotor:
+Here is the electric system schematic diagram for quadrotor:
 
 <img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/wiring_diagram.png" width="500">
 
@@ -78,6 +78,7 @@ Start from week 8, we switch from joytick control flight to autonomous flight.
 * Assemble vive sensors to the chassis of quadrotor.
 * Test sensor by reading the data.
 * Add safety control during automonous flight. 
+* Add autonomous control for yaw, which have pitch axis (front of the robot) to always face in -y direction.
 
 Here is vive lighthouse we use:
 
