@@ -9,8 +9,8 @@
 
 ## Software/Language Used 
 * C 
-* MobaXterm
-* VMware Workstation Player
+* [MobaXterm](https://mobaxterm.mobatek.net/)
+* [VMware Workstation Player](https://www.vmware.com/products/workstation-player.html)
 
 ## Hardware Used
 * Raspberry Pi
@@ -19,7 +19,7 @@
 * Wifi Dongle
 * Motor Controllers
 * [Logitech Joystick F310](#week-4)
-* HTC vive lighthouse
+* [HTC vive lighthouse](#week-8)
 
 ## Weekly Milestones
 ### Week 1 & 2
@@ -74,3 +74,15 @@ Here is what can each button on joystick do:
 ![joystick control](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/demo/JoystickControlDemo.gif)
 
 ### Week 8
+Start from week 8, we switch from joytick control flight to autonomous flight.
+* Assemble vive sensors to the chassis of quadrotor.
+* Test sensor by reading the data.
+* Add safety control during automonous flight. 
+
+Here is vive lighthouse we use:
+
+<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/vive_lighthouse.jpg" width="500">
+
+Here is assembled quadrotor with vive sensors:
+
+<img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/quadrotor_2.JPG" width="500">
