@@ -5,7 +5,7 @@
 * Program and tune a time-critical control loop for stable flight
 * Create software stack that interacts with low-level code to achieve high-level behavior including:
   1. Control the quadrotor with [logitech joystick](#week-4) ([demo](#demo-for-joystick-control-of-quadrotor)).
-  2. Autonomous flight with [HTC vive lighthouse](#week-8).
+  2. Autonomous flight with [HTC vive lighthouse](#week-8) ([demos](#demos-for-autonomous-control-of-quadrotor).
 
 ## Software/Language Used 
 * C 
@@ -74,11 +74,11 @@ Here is what can each button on joystick do:
 ![joystick control](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/demo/JoystickControlDemo.gif)
 
 ### Week 8
-Start from week 8, we switch from joytick control flight to autonomous flight.
+Start from week 8, we switch from joytick control flight to autonomous flight by using [HTC vive lighthouse](#week-8) and its corresponding sensors.
 * Assemble vive sensors to the chassis of quadrotor.
 * Test sensor by reading the data.
 * Add safety control during automonous flight. 
-* Add autonomous control for yaw, which have pitch axis (front of the robot) to always face in -y direction.
+* Add autonomous control for yaw, which have pitch axis (front of the robot) to always face in -y direction (proportional control).
 
 Here is vive lighthouse we use:
 
@@ -87,3 +87,21 @@ Here is vive lighthouse we use:
 Here is assembled quadrotor with vive sensors:
 
 <img src="https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/images/quadrotor_2.JPG" width="500">
+
+### Week 9
+* Add autonomous control for X, Y direction (proportional + differential control).
+* Add filters for autonomous control for X, Y, and yaw to reduce the noises from vive light house.
+* Mix the autonomous control and joystick control for X, Y, and yaw.
+* Test autonomous control so far by Using joystick thrust to keep quadrotor about 2 feet off ground.
+
+### Week 10
+* Add autonomous thrust control (Z direction, height off ground) (calibrate Z acceleration, average Z acceleration, fuse Z velocity).
+
+#### Demos for autonomous control of quadrotor
+First:
+
+![autonomous control](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/demo/AutonomousControlDemo1.gif)
+
+Second:
+
+![autonomous control](https://github.com/meng1994412/Quadrotor_control_and_design/blob/master/demo/AutonomousControlDemo2.gif)
