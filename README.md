@@ -8,7 +8,7 @@
   2. Autonomous flight with [HTC vive lighthouse](#week-8) ([demos](#demos-for-autonomous-control-of-quadrotor)).
 
 ## Software/Language Used 
-* C++
+* C/C++
 * [MobaXterm](https://mobaxterm.mobatek.net/)
 * [VMware Workstation Player](https://www.vmware.com/products/workstation-player.html)
 
